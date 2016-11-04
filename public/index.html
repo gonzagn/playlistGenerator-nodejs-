@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket app</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+</head>
+<body>
+    <h1 style="text-align: center">Generador de musica para tú Fiesta</h1>
+    <div id="mensajes"></div>
+
+    <form onsubmit="return createPartyPlaylist(this)" style="display: block; width: 150px; margin: 0 auto;"><br><br>
+        <input type="text" id="nameParty" placeholder="Nombre de la fiesta" style=" width: 150px;"><br>
+        <input type="text" id="author" placeholder="Tu nombre" style=" width: 150px;"><br><br>
+        <input type="submit" value="Crear" style="display: block; width: 50px; margin: 0 auto;">
+    </form><br><br>
+    <div id="token" style="display: none;"></div>
+</body>
+</html>

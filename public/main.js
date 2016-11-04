@@ -1,7 +1,6 @@
 /**
  * Created by gonzalogarcia on 3/11/16.
  */
-
 var socket = io.connect('http://localhost:8080', { 'forceNew' : true});
 
 socket.on('messages', function(data){
@@ -52,8 +51,7 @@ function showToken(token){
                    <button>COPY TO SHARE</button>
                 </div>`;
 
-
-
     $('#token').html(html);
     $('#token').slideDown();
 }
+

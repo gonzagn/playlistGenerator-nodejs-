@@ -45,7 +45,7 @@ app.get('/', function(req, res){
 });
 
 app.get('/party', function(req, res){
-    tokenFiesta =  req.param('token');
+   var tokenFiesta =  req.param('token');
     res.sendfile('public/home-invitado.html');
 
 });
@@ -58,23 +58,21 @@ io.on('connection', function(socket){
 
     //escuchamos emision
     socket.on('new-party', function(data){
-
         crearFiesta(data);
-
+    });
+    //escuchamos emision
+    socket.on('new-user', function(data){
+        crearUsuario(data);
     });
 
 });
-
-
 
 //Se deja al final del fichero
 server.listen(8080, function(){
     console.log('funcionando');
 });
 
-
 // Funciones
-
 function crearFiesta(data){
 
     //Creamos token para la fiesta
@@ -99,16 +97,29 @@ function crearFiesta(data){
                         }else{
                             connection.end();
                             io.sockets.emit('party-creada', tokenParty);
-
                         }
                     }
                 );
             }
         }
     );
+}
+
+function crearUsuario(data){
 
 
 
+    //Creamos al usuario anfitrion
+    var queryPartyUsuarios = connection.query('INSERT INTO partys_usuarios(nombre, idSpotify, tokenParty) VALUES(?, ?, ?)', [data.name, '###############', data.token], function(error, result){
+            if(error){
+                console.log(error);
+                connection.end();
+                return false;
+            }else{
+                connection.end();
+                io.sockets.emit('invitado-creado');
 
-
+            }
+        }
+    );
 }

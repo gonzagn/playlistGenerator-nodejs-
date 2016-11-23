@@ -11,6 +11,11 @@ socket.on('party-creada', function(token){
     showToken(token);
 });
 
+socket.on('redirect-anfitrion', function(urlAuth){
+    console.log('redirect-anfitrion');
+    window.location.href = urlAuth;
+});
+
 function render(data){
 
     var html = data.map(function(elem, index){
@@ -43,6 +48,13 @@ function createPartyPlaylist(e){
     socket.emit('new-party', party);
     return false;
 }
+
+function getUrlLogin(e){
+
+    socket.emit('login-anfitrion');
+    return false;
+}
+
 
 function showToken(token){
 

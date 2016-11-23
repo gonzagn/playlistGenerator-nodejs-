@@ -9,9 +9,17 @@ var app = express();
 var server  = require('http').Server(app);
 var io = require('socket.io')(server);
 
+//La parte publica de la aplicacion
+app.use(express.static('public'));
+
 //Spotify
 var SpotifyWebApi = require('spotify-web-api-node');
-
+var credentials = {
+    clientId : '4a3e7b2dc9ac41ba93371446e475cbcc',
+    clientSecret : '262b7ed0bbd7443b8f3eed1490c4f451',
+    redirectUri : 'http://mydj.ladespensa.es:8080/anfitrion'
+};
+var spotifyApi = new SpotifyWebApi(credentials);
 
 //BBDD
 var mysql = require('mysql');
@@ -29,15 +37,17 @@ connection.connect(function(error){
         console.log('Conexion correcta.');
     }
 });
-var credentials = {
-    clientId : '4a3e7b2dc9ac41ba93371446e475cbcc',
-    clientSecret : '262b7ed0bbd7443b8f3eed1490c4f451',
-    redirectUri : 'http://mydj.ladespensa.es:8080/anfitrion'
-};
-var spotifyApi = new SpotifyWebApi(credentials);
 
-app.use(express.static('public'));
+//Sesiones
+/*
+app.use(express.cookieParser());
+app.use(express.session({ secret: 'secretw4riou4dn' }));
+*/
 
+
+
+// --------------------- RUTAS ----------------------
+// Rutas de la aplicacion
 app.get('/', function(req, res){
     res.status(200).send('Hola anfitrion');
 });
@@ -100,15 +110,6 @@ app.get('/anfitrion', function(req, res){
                                             i = i+1;
                                         }
 
-                                        /*
-                                         spotifyApi.addTracksToPlaylist('gonzagn', '1rI22ld3ebn5t9fTPo1Opw', ["spotify:track:6FDYzyjteGpimiBnO06ikI"])
-                                         .then(function(data) {
-                                         console.log('Added tracks to playlist!');
-                                         }, function(err) {
-                                         console.log('Something went wrong!', err);
-                                         });
-                                         */
-
                                     }, function(err) {
                                         console.log('Could not refresh access token', err);
                                     });
@@ -132,7 +133,8 @@ app.get('/anfitrion', function(req, res){
 
 });
 
-
+// ----------------------- SOCKETS -------------------------
+// Comunicación con sokets, aqui manejamos la escucha de los eventos que emitirá la parte publica.
 io.on('connection', function(socket){
    console.log('alguien se ha conectado con sokets');
 
@@ -158,12 +160,13 @@ io.on('connection', function(socket){
 
 });
 
+// ----------------------- FUNCIONES -----------------------
+// Funciones generales de la parte del servidor (BACK-FLOW)
 function redirigirAnfitrion(urlLogin){
     io.sockets.emit('redirect-anfitrion', urlLogin);
     return false;
 }
 
-// Funciones
 function crearFiesta(data){
 
     //Creamos token para la fiesta
@@ -176,7 +179,6 @@ function crearFiesta(data){
     //Creamos al usuario anfitrion
     var queryPartyUsuarios = connection.query('INSERT INTO sesiones(nombre, idSpotify, tokenParty, anfitrion) VALUES(?, ?, ?, ?)', [data.author, '######## ANFITRION #######', tokenParty, 1], function(error, result){
         if(error){
-            connection.end();
             return false;
         }else{
             idUserAnfitrion = result.insertId;
@@ -185,7 +187,6 @@ function crearFiesta(data){
                     console.log(error);
                     return false;
                 }else{
-                    connection.end();
                     io.sockets.emit('party-creada', tokenParty);
                 }
             });

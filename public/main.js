@@ -41,7 +41,6 @@ function addMessage(e){
 
 function createPartyPlaylist(e){
     var party = {
-        author: $('#author').val(),
         name: $('#nameParty').val()
     };
 

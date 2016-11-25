@@ -1,0 +1,94 @@
+/* Media queries */
+@mixin bp($size){
+  @media screen and (min-width: $size) {
+      @content
+  }
+}
+@mixin bp-width-height($width, $height){
+  @media (min-width: $width) and (min-height: $height){
+    @content;
+  }
+}
+
+/* Cross browser transition */
+@mixin transition($args) {
+  -webkit-transition: $args;
+  -moz-transition: $args;
+  -ms-transition: $args;
+  -o-transition: $args;
+  transition: $args;
+}
+
+/* Cross browser transform */
+@mixin transform($args){
+  -ms-transform: $args;
+  -webkit-transform: $args; 
+  transform: $args; 
+}
+
+/* Cross browser border-radius */
+@mixin border-radius($args){
+  /*-webkit-border-radius: $args;
+  -moz-border-radius: $args;*/
+  border-radius: $args;
+}
+
+/* Mouse and tactil gestures */
+@mixin hover{
+  &:hover,
+  &:focus,
+  &.hover{
+    @content;
+  }
+}
+
+/* Transform origin (because vendor prefixes) */
+@mixin transform-origin($args){
+  -webkit-transform-origin: $args;
+  -moz-transform-origin: $args;
+  -ms-transform-origin: $args;
+  transform-origin: $args;
+}
+
+
+// background cover crossbrowser
+@mixin bg-size($size){
+  -webkit-background-size: $size;
+  -moz-background-size: $size;
+  -o-background-size: $size;
+  background-size: $size;
+}
+@mixin bg-cover($image, $atachment:fixed){
+  background: url($image) no-repeat center center $atachment;
+  @include bg-size(cover)
+}
+
+/* Size (square by default) */
+@mixin size($width, $height:$width){
+  width: $width;
+  height: $height;
+}
+
+@mixin box-shadow($shadow) {
+  -webkit-box-shadow: $shadow; // iOS <4.3 & Android <4.1
+  box-shadow: $shadow;
+}
+
+@mixin list-unstyled {
+  padding-left: 0;
+  list-style: none;
+}
+
+@mixin user-select($select) {
+  -webkit-user-select: $select;
+  -moz-user-select: $select;
+  -ms-user-select: $select; // IE10+
+  user-select: $select;
+}
+
+@mixin opacity($opacity) {
+  opacity: $opacity;
+  // IE8 filter
+  $opacity-ie: ($opacity * 100);
+  filter: alpha(opacity=$opacity-ie);
+}

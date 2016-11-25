@@ -11,6 +11,19 @@ var io = require('socket.io')(server);
 
 //La parte publica de la aplicacion
 app.use(express.static('public'));
+var router = express.Router();
+app.use(router);
+
+var bodyParser = require('body-parser');
+// parse application/json
+app.use(bodyParser.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse the raw data
+app.use(bodyParser.raw());
+// parse text
+app.use(bodyParser.text());
+
 
 //Spotify
 var SpotifyWebApi = require('spotify-web-api-node');
@@ -39,6 +52,17 @@ connection.connect(function(error){
 });
 
 //Sesiones
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+const session = require('express-session');
+
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+}));
+
+
 /*
 app.use(express.cookieParser());
 app.use(express.session({ secret: 'secretw4riou4dn' }));
@@ -100,11 +124,12 @@ app.get('/anfitrion', function(req, res){
 
                                         for(i in datos.body.items){
                                             var cancion = {};
-                                            console.log(datos.body.items[i].album);
                                             cancion.nombre = datos.body.items[i].album['name'];
                                             cancion.id_spotify = datos.body.items[i].album['id'];
                                             cancion.id_usuario = result.insertId;
 
+                                            req.session.id_usuario = result.insertId;
+                                            req.session.save();
                                             //CREACION CANCIONES ANFITRION
                                             addSong(cancion);
                                             i = i+1;
@@ -132,6 +157,34 @@ app.get('/anfitrion', function(req, res){
     res.sendfile('public/crear-sesion.html');
 
 });
+
+crearFiesta = function(req, res) {
+    //Creamos token para la fiesta
+    var rand = function() {
+        return Math.random().toString(36).substr(2);
+    };
+    var tokenParty = rand();
+    var idUserAnfitrion = req.session.id_usuario;
+
+    //Guargamos el token en sesion
+    req.session.tokenParty = tokenParty;
+    req.session.save();
+
+
+    //Creamos al usuario anfitrion
+    var queryPartyUsuarios = connection.query('INSERT INTO sesiones(nombre, id_usuario_anfitrion, token) VALUES(?, ?, ?)', [req.body.nombre, idUserAnfitrion, tokenParty], function(error, result){
+        if(error){
+            res.json(error);
+
+        }else{
+            res.json({'response':'Creada!'});
+        }
+    });
+
+};
+
+app.post('/crear-sesion', crearFiesta);
+
 
 // ----------------------- SOCKETS -------------------------
 // Comunicación con sokets, aqui manejamos la escucha de los eventos que emitirá la parte publica.
@@ -165,33 +218,6 @@ io.on('connection', function(socket){
 function redirigirAnfitrion(urlLogin){
     io.sockets.emit('redirect-anfitrion', urlLogin);
     return false;
-}
-
-function crearFiesta(data){
-
-    //Creamos token para la fiesta
-    var rand = function() {
-        return Math.random().toString(36).substr(2);
-    };
-    var tokenParty = rand();
-    var idUserAnfitrion = null;
-
-    //Creamos al usuario anfitrion
-    var queryPartyUsuarios = connection.query('INSERT INTO sesiones(nombre, idSpotify, tokenParty, anfitrion) VALUES(?, ?, ?, ?)', [data.author, '######## ANFITRION #######', tokenParty, 1], function(error, result){
-        if(error){
-            return false;
-        }else{
-            idUserAnfitrion = result.insertId;
-            var query = connection.query('INSERT INTO partys(token, nombre, idUser) VALUES(?, ?, ?)', [tokenParty, data.name, idUserAnfitrion], function(error, result){
-                if(error){
-                    console.log(error);
-                    return false;
-                }else{
-                    io.sockets.emit('party-creada', tokenParty);
-                }
-            });
-        }
-    });
 }
 
 

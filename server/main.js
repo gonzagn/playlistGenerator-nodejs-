@@ -63,13 +63,6 @@ app.use(session({
 }));
 
 
-/*
-app.use(express.cookieParser());
-app.use(express.session({ secret: 'secretw4riou4dn' }));
-*/
-
-
-
 // --------------------- RUTAS ----------------------
 // Rutas de la aplicacion
 app.get('/', function(req, res){
@@ -108,51 +101,37 @@ app.get('/anfitrion', function(req, res){
                         user.nombre = data.body['display_name'];
                         user.email = data.body['email'];
                         user.idSpotify = data.body['id'];
-                        user.anfitrion = 1;
 
-                        //CREACION USUARIO
-                        var queryPartyUsuarios = connection.query('INSERT INTO usuarios(nombre, id_spotify, email, anfitrion) VALUES(?, ?, ?, ?)', [user.nombre, user.idSpotify, user.email, user.anfitrion], function(error, result){
+                        getUserByEmail(user.email, function (result, error) {
                             if(error){
                                 console.log(error);
-                                throw error;
                             }else{
-                                console.log(result.insertId);
-                                if(result.insertId){
-                                    //CANCIONES DEL ANFITRION
-                                    spotifyApi.getMyTopTracks().then(function(datos) {
-                                        var i=0;
-
-                                        for(i in datos.body.items){
-                                            var cancion = {};
-                                            cancion.nombre = datos.body.items[i].album['name'];
-                                            cancion.id_spotify = datos.body.items[i].album['id'];
-                                            cancion.id_usuario = result.insertId;
-
-                                            req.session.id_usuario = result.insertId;
-                                            req.session.save();
-                                            //CREACION CANCIONES ANFITRION
-                                            addSong(cancion);
-                                            i = i+1;
+                                if(result[0]){
+                                    console.log('El usuario ya existe');
+                                }else{
+                                    console.log('El usuario no existe');
+                                    crearUsuario(user, function (result, error) {
+                                        if(error){
+                                            console.log(error);
+                                        }else{
+                                            console.log('Usuario creado');
+                                            getSongs(result.insertId, function(){
+                                                console.log('Canciones agregadas')
+                                            });
                                         }
-
-                                    }, function(err) {
-                                        console.log('Could not refresh access token', err);
                                     });
                                 }
-
                             }
                         });
-
                     });
 
                 }, function(err) {
                     console.log('Something went wrong!', err);
                 });
 
-
-        }, function(err) {
-            console.log('Something went wrong!', err);
-        });
+            }, function(err) {
+                console.log('Something went wrong!', err);
+            });
 
     res.sendfile('public/crear-sesion.html');
 
@@ -169,7 +148,6 @@ crearFiesta = function(req, res) {
     //Guargamos el token en sesion
     req.session.tokenParty = tokenParty;
     req.session.save();
-
 
     //Creamos al usuario anfitrion
     var queryPartyUsuarios = connection.query('INSERT INTO sesiones(nombre, id_usuario_anfitrion, token) VALUES(?, ?, ?)', [req.body.nombre, idUserAnfitrion, tokenParty], function(error, result){
@@ -203,13 +181,7 @@ io.on('connection', function(socket){
     socket.on('new-party', function(data){
         crearFiesta(data);
     });
-    //escuchamos emision
-    socket.on('new-user', function(data){
 
-        crearUsuario(data);
-        getSongsOfUser(data.token);
-
-    });
 
 });
 
@@ -221,22 +193,54 @@ function redirigirAnfitrion(urlLogin){
 }
 
 
-function getIdAnfitrionByEmail(email){
-    var query = connection.query('SELECT id FROM usuarios WHERE email = ? AND anfitrion = ?', [email, 1], function(error, result){
-        if(error){
-            console.log(error);
-            return false;
-        }else{
-            //console.log(result[0].id);
-            if(result.length > 0){
-                return result[0].id;
-            }else{
-                console.log('Registro no encontrado');
-                return false;
-            }
+function getUserByEmail(email, callback){
+
+    var query = connection.query('SELECT id, nombre, id_spotify, email FROM usuarios WHERE email ="' + email + '"' , function(error, result){
+        if (typeof callback === "function") {
+            // Execute the callback function and pass the parameters to it​
+            callback(result, error);
         }
     });
+
 }
+
+function crearUsuario(usuario, callback){
+
+    var query = connection.query('INSERT INTO usuarios(nombre, id_spotify, email) VALUES(?, ?, ?)', [usuario.nombre, usuario.idSpotify, usuario.email ], function(error, result){
+        if (typeof callback === "function") {
+            // Execute the callback function and pass the parameters to it​
+            callback(result, error);
+        }
+    });
+
+}
+
+
+function getSongs(id_usuario, callback){
+    spotifyApi.getMyTopTracks().then(function(datos) {
+        var i=0;
+        var errorInsert = true;
+        for(i in datos.body.items){
+            var cancion = {};
+            cancion.nombre = datos.body.items[i].album['name'];
+            cancion.id_spotify = datos.body.items[i].album['id'];
+            cancion.id_usuario = id_usuario;
+            //CREACION CANCIONES ANFITRION
+            errorInsert = addSong(cancion);
+            i = i+1;
+        }
+
+        if (typeof callback === "function") {
+            // Execute the callback function and pass the parameters to it​
+            callback(errorInsert);
+        }
+
+    }, function(err) {
+        console.log('Could not refresh access token', err);
+    });
+}
+
+
 
 function addSong(data){
     //Creamos al usuario anfitrion

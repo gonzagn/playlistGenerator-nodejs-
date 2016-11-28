@@ -18,6 +18,7 @@
     "spotify-web-api-node": "^2.3.6"
   },
   "devDependencies": {
+    "babel-preset-latest": "^6.16.0",
     "nodemon": "^1.11.0"
   }
 }

@@ -71,11 +71,6 @@ app.get('/', function(req, res){
     res.status(200).send('Hola anfitrion');
 });
 
-app.get('/party', function(req, res){
-   var tokenFiesta =  req.param('token');
-    res.sendfile('public/home-invitado.html');
-
-});
 
 app.get('/usuario', function(req, res){
     var code =  req.param('code');
@@ -205,6 +200,8 @@ adminSesion = function(req, res) {
                         req.session.save();
 
                         if(result.length == 0){
+                            console.log('------------ ID Usuario -----------');
+                            console.log(idUser);
                             //No tenemos las canciones del usuario en la sesion
                             getSongs(idUser, resultSesion[0],  function(){
                                 console.log('GET SONGS USER');
@@ -269,6 +266,8 @@ function redirigirAnfitrion(urlLogin){
 function doLogin(req, res, usuario, callback){
     //Guargamos el usuario en sesion
     req.session.usuario = usuario;
+    console.log('------- SAVE SESION USER -----');
+    console.log(usuario);
     req.session.save();
     if (typeof callback === "function") {
 
@@ -431,7 +430,7 @@ function addSong(data, sesion){
 
 function goLogin(token){
 
-    var scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-top-read', 'playlist-modify-public', 'playlist-modify-private'],
+    var scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-top-read', 'playlist-modify-public', 'playlist-modify-private', 'playlist-read-collaborative'],
         redirectUri = 'http://mydj.ladespensa.es:8080/usuario',
         clientId = '4a3e7b2dc9ac41ba93371446e475cbcc',
         state = 'rfger';

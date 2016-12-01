@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "babel-preset-latest": "^6.16.0",
+    "consolidate": "^0.14.5",
     "nodemon": "^1.11.0"
   }
 }

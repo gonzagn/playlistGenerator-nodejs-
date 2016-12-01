@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+</head>
+<body class="container">
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <main>
+        <div class="jumbotron">
+            <h2>Hola! <%= nombre %></h2>
+
+            <input type="text" id="nameParty" placeholder="Nombre" style="display: none; width: 150px; margin: 0 auto;"><br><br>
+            <a href="#" id="crear_fiesta" class="off"> + Crear Sesion</a>
+            <h2>Mis sesiones</h2>
+            <span>Anfitrión</span>
+
+            <span>Invitado</span>
+
+        </div>
+    </main>
+    <script>
+        $('#crear_fiesta').on('click', function(event) {
+            event.preventDefault();
+            if($(this).hasClass("off")){
+                $('#nameParty').slideDown();
+                $(this).removeClass("off");
+            }else{
+                var parametros = {};
+                parametros.nombre = $('#nameParty').val();
+
+                $.ajax({
+                    url: 'http://mydj.ladespensa.es:8080/crear-sesion',
+                    dataType: 'json',
+                    data: parametros,
+                    type: 'POST',
+                    beforeSend: function () {
+                    },
+                    success: function (respuesta, textStatus, jqXHR) {
+
+                        if (!respuesta.error) {
+
+                            window.location = "http://mydj.ladespensa.es:8080/sesion/"+respuesta.token;
+
+                        } else {
+                            console.log(respuesta);
+
+                        }
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(errorThrown);
+                        console.log('error de ajax');
+
+
+                    },
+                    complete: function (response) {
+                        var json = response.responseJSON;
+                        //Mostrar lo que corresponda.
+
+                        $('#btn_form_registro').removeClass('loading');
+                    }
+                });
+            }
+        })
+
+    </script>
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+</head>
+<body class="container">
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <main>
+        <div class="jumbotron">
+            <h2><%= nombre %> </h2>
+            <h3>By <%= creador %></h3><br>
+            <span>Canciones Actuales:</span><br><br>
+            <% for(var i=0; i<canciones.length; i++) { %>
+            <li>
+                <a href='supplies/<%= canciones[i] %>'>
+                    <%= canciones[i].nombre %>
+                </a>
+            </li>
+            <% } %>
+        </div>
+    </main>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
